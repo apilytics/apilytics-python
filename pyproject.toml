@@ -1,0 +1,86 @@
+[tool.poetry]
+name = "apilytics"
+version = "1.0.0"
+description = "Apilytics for Python - Easy API analytics for Python backends"
+license = "MIT"
+authors = ["Apilytics <hello@apilytics.io>"]
+readme = "README.md"
+homepage = "https://apilytics.io"
+repository = "https://github.com/apilytics/apilytics-python"
+keywords = [
+    "api",
+    "backend",
+    "analytics",
+    "monitoring",
+    "middleware",
+]
+classifiers = [
+    # Poetry will automatically add Python version and license classifiers.
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Plugins",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 2.2",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking :: Monitoring",
+    "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+black = "21.12b0"
+django = "3.2.11"
+django-stubs = "1.9.0"
+fastapi = "0.71.0"
+flake8 = "4.0.1"
+isort = "5.10.1"
+mypy = "0.921"
+pytest = "6.2.5"
+pytest-cov = "3.0.0"
+pytest-django = "4.5.2"
+requests = "2.27.0"  # Not used by us, required by `fastapi.testclient.TestClient`.
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.django.app.settings"
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "*/tests/*",
+]
+
+[tool.isort]
+profile = "black"
+skip_glob = [
+    "*/.venv/*",
+]
+
+[tool.mypy]
+strict = true
+local_partial_types = true
+warn_unreachable = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
+plugins = [
+    "mypy_django_plugin.main",
+]
+
+[tool.django-stubs]
+django_settings_module = "tests.django.app.settings"

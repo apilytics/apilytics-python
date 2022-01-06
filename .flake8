@@ -1,0 +1,13 @@
+[flake8]
+exclude =
+    .venv
+ignore =
+    # Whitespace before ':': Not PEP 8 compliant and clashes with Black.
+    E203,
+    # Line length: Black handles them so Flake doesn't have to.
+    E501,
+    # Line break before binary operator: Not PEP 8 compliant and clashes with Black.
+    W503,
+per_file_ignores =
+    # Allow unused imports in __init__ files.
+    __init__.py:F401,

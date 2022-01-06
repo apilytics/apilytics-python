@@ -1,0 +1,146 @@
+name: "CI"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  commits:
+    name: "Commits"
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: "Check commits of the PR branch"
+        run: ./.github/check_commits.sh
+
+  linters:
+    name: "Linters"
+    needs: commits
+    if: ${{ !failure() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v2
+
+      - name: "Set up Python"
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: "Install Poetry"
+        uses: snok/install-poetry@5e4414407e59f94f2148bcb253917dfc22dee7d9  # v1.3.0
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: "Load cached venv"
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: "Install dependencies"
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-root
+
+      - name: "Run linters"
+        run: |
+          source "$VENV"
+          isort --check-only --diff . 
+          flake8 .
+          black --check --diff . 
+
+  build:
+    name: "Build"
+    needs: commits
+    if: ${{ !failure() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v2
+
+      - name: "Set up Python"
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: "Install Poetry"
+        uses: snok/install-poetry@5e4414407e59f94f2148bcb253917dfc22dee7d9  # v1.3.0
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: "Build the wheel"
+        run: poetry build
+
+      - name: "Install from the wheel"
+        run: pip install dist/*.whl
+
+  tests:
+    name: "Tests"
+    needs: [linters, build]
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v2
+
+      - name: "Set up Python ${{ matrix.python-version }}"
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: "Install Poetry"
+        uses: snok/install-poetry@5e4414407e59f94f2148bcb253917dfc22dee7d9  # v1.3.0
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: "Load cached venv"
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: "Install dependencies"
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-root
+
+      - name: "Install the package"
+        run: poetry install
+
+      - name: "Run type-checking"
+        run: |
+          source "$VENV"
+          mypy .
+
+      - name: "Run tests"
+        run: |
+          source "$VENV"
+          pytest --verbose --cov=. --cov-report=xml .
+
+      - name: "Upload coverage"
+        if: matrix.python-version == '3.7'
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b  # v2.1.0
+        with:
+          files: coverage.xml
