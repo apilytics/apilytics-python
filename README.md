@@ -22,7 +22,7 @@ pip install apilytics
 You can leave the env variable unset in e.g. development and test environments,
 the middleware will be automatically disabled if the key is `None`.*
 
-### Django:
+### Django
 
 `settings.py`:
 ```python
@@ -35,7 +35,7 @@ MIDDLEWARE = [
 ]
 ```
 
-### FastAPI:
+### FastAPI
 
 `main.py`:
 
@@ -50,7 +50,7 @@ app = FastAPI()
 app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 ```
 
-### Other Python Frameworks:
+### Other Python Frameworks
 
 You can easily build your own middleware which measures the execution time and sends the metrics:
 
