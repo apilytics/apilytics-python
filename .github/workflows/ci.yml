@@ -93,6 +93,7 @@ jobs:
   tests:
     name: "Tests"
     needs: [linters, build]
+    if: ${{ !failure() }}
     strategy:
       fail-fast: true
       matrix:
