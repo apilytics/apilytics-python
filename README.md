@@ -8,6 +8,10 @@
 [![python versions](https://img.shields.io/pypi/pyversions/apilytics)](#what-python-versions-does-the-package-work-with)
 [![license](https://img.shields.io/pypi/l/apilytics.svg)](https://github.com/apilytics/apilytics-python/blob/master/LICENSE)
 
+Apilytics is a service that lets you analyze operational, performance and security metrics from your APIs without infrastructure-level logging.
+
+<img src="https://www.apilytics.io/mock-ups/time-frame.gif" alt="Apilytics dashboard animation" width="600" height="300" />
+
 ## Installation
 
 1. Sign up and get your API key from https://apilytics.io - we offer a completely free trial with no credit card required!
@@ -22,7 +26,7 @@ pip install apilytics
 You can leave the env variable unset in e.g. development and test environments,
 the middleware will be automatically disabled if the key is `None`.*
 
-### Django:
+### Django
 
 `settings.py`:
 ```python
@@ -35,7 +39,7 @@ MIDDLEWARE = [
 ]
 ```
 
-### FastAPI:
+### FastAPI
 
 `main.py`:
 
@@ -50,7 +54,7 @@ app = FastAPI()
 app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 ```
 
-### Other Python Frameworks:
+### Other Python Frameworks
 
 You can easily build your own middleware which measures the execution time and sends the metrics:
 
@@ -62,14 +66,18 @@ from apilytics.core import ApilyticsSender
 
 
 def my_apilytics_middleware(request, get_response):
-  with ApilyticsSender(
-      api_key=os.getenv("APILYTICS_API_KEY"),
-      path=request.path,
-      method=request.method,
-  ) as sender:
-      response = get_response(request)
-      sender.set_response_info(status_code=response.status_code)
-  return response
+    api_key = os.getenv("APILYTICS_API_KEY")
+    if not api_key:
+        return get_response(request)
+
+    with ApilyticsSender(
+        api_key=api_key,
+        path=request.path,
+        method=request.method,
+    ) as sender:
+        response = get_response(request)
+        sender.set_response_info(status_code=response.status_code)
+    return response
 ```
 
 ## Frequently Asked Questions
