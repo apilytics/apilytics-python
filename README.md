@@ -62,14 +62,18 @@ from apilytics.core import ApilyticsSender
 
 
 def my_apilytics_middleware(request, get_response):
-  with ApilyticsSender(
-      api_key=os.getenv("APILYTICS_API_KEY"),
-      path=request.path,
-      method=request.method,
-  ) as sender:
-      response = get_response(request)
-      sender.set_response_info(status_code=response.status_code)
-  return response
+    api_key = os.getenv("APILYTICS_API_KEY")
+    if not api_key:
+        return get_response(request)
+
+    with ApilyticsSender(
+        api_key=api_key,
+        path=request.path,
+        method=request.method,
+    ) as sender:
+        response = get_response(request)
+        sender.set_response_info(status_code=response.status_code)
+    return response
 ```
 
 ## Frequently Asked Questions
