@@ -1,4 +1,4 @@
-# apilytics-python
+# Apilytics for Python
 
 [![pypi](https://img.shields.io/pypi/v/apilytics)](https://pypi.org/project/apilytics/)
 [![ci](https://github.com/apilytics/apilytics-python/actions/workflows/ci.yml/badge.svg)](https://github.com/apilytics/apilytics-python/actions/workflows/ci.yml)
@@ -8,7 +8,7 @@
 [![python versions](https://img.shields.io/pypi/pyversions/apilytics)](#what-python-versions-does-the-package-work-with)
 [![license](https://img.shields.io/pypi/l/apilytics.svg)](https://github.com/apilytics/apilytics-python/blob/master/LICENSE)
 
-Apilytics is a service that lets you analyze operational, performance and security metrics from your APIs without infrastructure-level logging.
+Apilytics is a service that lets you analyze operational, performance and security metrics from your APIs easily.
 
 <img src="https://www.apilytics.io/mock-ups/time-frame.gif" alt="Apilytics dashboard animation" width="600" height="300" />
 
@@ -17,18 +17,20 @@ Apilytics is a service that lets you analyze operational, performance and securi
 1. Sign up and get your API key from https://apilytics.io - we offer a completely free trial with no credit card required!
 
 2. Install this package:
+
 ```sh
 pip install apilytics
 ```
 
-3. Enable the middleware and set your API key:  
-*A good practice is to securely store the API key as an environment variable.  
-You can leave the env variable unset in e.g. development and test environments,
-the middleware will be automatically disabled if the key is `None`.*
+3. Enable the middleware and set your API key:\
+   _A good practice is to securely store the API key as an environment variable.
+   You can leave the env variable unset in e.g. development and test environments,
+   the middleware will be automatically disabled if the key is `None`._
 
 ### Django
 
 `settings.py`:
+
 ```python
 import os
 
@@ -59,6 +61,7 @@ app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 You can easily build your own middleware which measures the execution time and sends the metrics:
 
 `my_apilytics_middleware.py`:
+
 ```python
 import os
 
@@ -85,7 +88,7 @@ def my_apilytics_middleware(request, get_response):
 ### Does the middleware slow down my backend?
 
 - No. The middleware does all of its requests to the Apilytics API in a background thread pool,
-  so it will not slow down your normal request handling. 
+  so it will not slow down your normal request handling.
 
 ### What 3rd party dependencies does `apilytics` have?
 
