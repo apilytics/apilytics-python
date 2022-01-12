@@ -10,7 +10,7 @@ __all__ = ["ApilyticsMiddleware"]
 
 class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
-    FastAPI middleware which sends API analytics data to Apilytics (https://apilytics.io).
+    FastAPI middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
     Examples:
         main.py::
