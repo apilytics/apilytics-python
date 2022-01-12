@@ -4,10 +4,9 @@ import time
 import types
 import urllib.error
 import urllib.request
+from typing import ClassVar, Optional, Type
 
 __all__ = ["ApilyticsSender"]
-
-from typing import ClassVar, Optional, Type
 
 
 class ApilyticsSender:
