@@ -12,7 +12,7 @@ from typing import ClassVar, Optional, Type
 
 class ApilyticsSender:
     """
-    Context manager which sends API analytics data to Apilytics (https://apilytics.io).
+    Context manager that sends API analytics data to Apilytics (https://apilytics.io).
 
     Use as a context manager by wrapping a request handler in an HTTP middleware.
     Make sure to call ``set_response_info`` on the object received in the with-statement.

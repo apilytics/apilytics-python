@@ -11,7 +11,7 @@ __all__ = ["ApilyticsMiddleware"]
 
 class ApilyticsMiddleware:
     """
-    FastAPI middleware which sends API analytics data to Apilytics (https://apilytics.io).
+    Django middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
     Requires your Apilytics origin's API key to be set as ``APILYTICS_API_KEY`` in
     ``settings.py`` for this to do anything. The variable can be unset (or ``None``)
