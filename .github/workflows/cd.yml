@@ -54,7 +54,7 @@ jobs:
       - name: "Update the changelog"
         # Find the first line that starts with `###` or `## [<number>` from the CHANGELOG and insert the new version header before it.
         run: |
-          current_date="$(date '+%Y-%m-%d')"
+          current_date="$(date -u '+%Y-%m-%d')"
           sed -i "0,/^\(###\|## *\[[0-9]\).*/{s//## [${{ steps.bump.outputs.version }}] - ${current_date}\n\n&/}" CHANGELOG.md
 
       - name: "Extract version's changelog for release notes and tag message"
