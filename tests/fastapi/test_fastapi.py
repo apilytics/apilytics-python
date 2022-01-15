@@ -1,3 +1,4 @@
+import platform
 import unittest.mock
 
 import fastapi.middleware
@@ -31,6 +32,7 @@ def test_middleware_should_call_apilytics_api(
         # urllib calls `capitalize()` on the header keys.
         "Content-type": "application/json",
         "X-api-key": "dummy-key",
+        "Apilytics-version": f"apilytics-python-fastapi/{apilytics.__version__};python/{platform.python_version()};fastapi/{fastapi.__version__}",
     }
 
     data = tests.conftest.decode_request_data(call_kwargs["data"])

@@ -1,10 +1,13 @@
 import concurrent.futures
 import json
+import platform
 import time
 import types
 import urllib.error
 import urllib.request
 from typing import ClassVar, Optional, Type
+
+import apilytics
 
 __all__ = ["ApilyticsSender"]
 
@@ -32,7 +35,19 @@ class ApilyticsSender:
 
     _executor: ClassVar[concurrent.futures.Executor]
 
-    def __init__(self, *, api_key: str, path: str, method: str) -> None:
+    _apilytics_version_template: ClassVar[
+        str
+    ] = f"{{integration}}/{apilytics.__version__};python/{platform.python_version()}"
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        path: str,
+        method: str,
+        apilytics_integration: Optional[str] = None,
+        integrated_library: Optional[str] = None,
+    ) -> None:
         """
         Initialize the context manager with info from the HTTP request object.
 
@@ -40,11 +55,21 @@ class ApilyticsSender:
             api_key: The API key for your Apilytics origin.
             path: Path of the user's HTTP request, e.g. "/foo/bar/123".
             method: Method of the user's HTTP request, e.g. "GET".
+            apilytics_integration: Name of the Apilytics integration that's calling this,
+                e.g. "apilytics-python-django". No need to pass this when calling from user code.
+            integrated_library: Name and version of the integration that this is used in,
+                e.g. "django/3.2.1". No need to pass this when calling from user code.
         """
         self._api_key = api_key
         self._path = path
         self._method = method
         self._status_code: Optional[int] = None
+
+        self._apilytics_version = self._apilytics_version_template.format(
+            integration=apilytics_integration or "apilytics-python-core"
+        )
+        if integrated_library:
+            self._apilytics_version += f";{integrated_library}"
 
     def __enter__(self) -> "ApilyticsSender":
         """Start the timer, measuring how long the ``with`` block takes to execute."""
@@ -85,6 +110,7 @@ class ApilyticsSender:
             headers={
                 "Content-Type": "application/json",
                 "X-API-Key": self._api_key,
+                "Apilytics-Version": self._apilytics_version,
             },
         )
         data = {
