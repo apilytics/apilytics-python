@@ -69,6 +69,7 @@ jobs:
           message: 'Release ${{ steps.bump.outputs.version }}'
           tag: 'v${{ steps.bump.outputs.version }} --annotate --file /dev/null'
           default_author: github_actions
+          pathspec_error_handling: exitImmediately
 
       - name: "Create a GitHub release"
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5  # v1
