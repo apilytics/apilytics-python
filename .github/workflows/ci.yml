@@ -26,8 +26,6 @@ jobs:
 
   linters:
     name: "Linters"
-    needs: commits
-    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
@@ -65,8 +63,6 @@ jobs:
 
   build:
     name: "Build"
-    needs: commits
-    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
@@ -93,7 +89,6 @@ jobs:
   tests:
     name: "Tests"
     needs: [linters, build]
-    if: ${{ !failure() }}
     strategy:
       fail-fast: true
       matrix:
