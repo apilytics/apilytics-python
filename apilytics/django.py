@@ -1,5 +1,6 @@
 from typing import Callable
 
+import django
 import django.conf
 import django.core.exceptions
 import django.http
@@ -42,6 +43,8 @@ class ApilyticsMiddleware:
             api_key=self.api_key,
             path=request.path,
             method=request.method or "",
+            apilytics_integration="apilytics-python-django",
+            integrated_library=f"django/{django.__version__}",
         ) as sender:
             response = self.get_response(request)
             sender.set_response_info(status_code=response.status_code)

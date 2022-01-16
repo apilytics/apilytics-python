@@ -52,6 +52,8 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             api_key=self.api_key,
             path=request.url.path,
             method=request.method,
+            apilytics_integration="apilytics-python-fastapi",
+            integrated_library=f"fastapi/{fastapi.__version__}",
         ) as sender:
             response = await call_next(request)
             sender.set_response_info(status_code=response.status_code)
