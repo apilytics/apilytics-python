@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apilytics"
-version = "1.0.1"
+version = "1.0.2"
 description = "Apilytics for Python - Easy API analytics for Python backends"
 license = "MIT"
 authors = ["Apilytics <hello@apilytics.io>"]
