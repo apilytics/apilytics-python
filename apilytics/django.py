@@ -42,7 +42,8 @@ class ApilyticsMiddleware:
         with apilytics.core.ApilyticsSender(
             api_key=self.api_key,
             path=request.path,
-            method=request.method or "",
+            query=request.META.get("QUERY_STRING"),
+            method=request.method or "",  # Typed as Optional, should never be None.
             apilytics_integration="apilytics-python-django",
             integrated_library=f"django/{django.__version__}",
         ) as sender:

@@ -43,7 +43,7 @@ def test_middleware_should_call_apilytics_api(
     assert isinstance(data["timeMillis"], int)
 
 
-def test_middleware_should_not_send_query_params(
+def test_middleware_should_send_query_params(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     response = client.post("/dummy/123/path/?param=foo&param2=bar")
@@ -54,6 +54,7 @@ def test_middleware_should_not_send_query_params(
     data = tests.conftest.decode_request_data(call_kwargs["data"])
     assert data["method"] == "POST"
     assert data["path"] == "/dummy/123/path/"
+    assert data["query"] == "param=foo&param2=bar"
     assert data["statusCode"] == 201
     assert isinstance(data["timeMillis"], int)
 
