@@ -41,6 +41,54 @@ def test_apilytics_sender_should_call_apilytics_api(
     assert isinstance(data["timeMillis"], int)
 
 
+def test_middleware_should_send_query_params(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    with apilytics.core.ApilyticsSender(
+        api_key="dummy-key",
+        path="/path",
+        query="key=value?other=123",
+        method="PUT",
+    ) as sender:
+        sender.set_response_info(status_code=200)
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["path"] == "/path"
+    assert data["query"] == "key=value?other=123"
+
+
+def test_middleware_should_not_send_empty_query_params(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    with apilytics.core.ApilyticsSender(
+        api_key="dummy-key",
+        path="/",
+        query="",
+        method="GET",
+    ) as sender:
+        sender.set_response_info(status_code=200)
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert "query" not in data
+
+    with apilytics.core.ApilyticsSender(
+        api_key="dummy-key",
+        path="/",
+        query=None,
+        method="GET",
+    ) as sender:
+        sender.set_response_info(status_code=200)
+
+    assert mocked_urlopen.call_count == 2
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert "query" not in data
+
+
 @unittest.mock.patch(
     "apilytics.core.urllib.request.urlopen",
     side_effect=urllib.error.URLError("testing"),

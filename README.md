@@ -76,6 +76,7 @@ def my_apilytics_middleware(request, get_response):
     with ApilyticsSender(
         api_key=api_key,
         path=request.path,
+        query=request.query_string,
         method=request.method,
     ) as sender:
         response = get_response(request)

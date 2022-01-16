@@ -27,6 +27,7 @@ class ApilyticsSender:
             with ApilyticsSender(
                 api_key="<your-api-key>",
                 path=request.path,
+                query=request.query_string,
                 method=request.method,
             ) as sender:
                 response = get_response(request)
@@ -45,6 +46,7 @@ class ApilyticsSender:
         api_key: str,
         path: str,
         method: str,
+        query: Optional[str] = None,
         apilytics_integration: Optional[str] = None,
         integrated_library: Optional[str] = None,
     ) -> None:
@@ -54,6 +56,8 @@ class ApilyticsSender:
         Args:
             api_key: The API key for your Apilytics origin.
             path: Path of the user's HTTP request, e.g. "/foo/bar/123".
+            query: Optional query string of the user's HTTP request e.g. "key=val&other=123".
+                An empty string and None are treated equally. Can have an optional "?" at the start.
             method: Method of the user's HTTP request, e.g. "GET".
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
@@ -63,6 +67,7 @@ class ApilyticsSender:
         self._api_key = api_key
         self._path = path
         self._method = method
+        self._query = query
         self._status_code: Optional[int] = None
 
         self._apilytics_version = self._apilytics_version_template.format(
@@ -115,6 +120,7 @@ class ApilyticsSender:
         )
         data = {
             "path": self._path,
+            **({"query": self._query} if self._query else {}),
             "method": self._method,
             "statusCode": self._status_code,
             "timeMillis": (self._end_time_ns - self._start_time_ns) // 1_000_000,
