@@ -58,7 +58,7 @@ jobs:
           current_date="$(date -u '+%Y-%m-%d')"
           sed -i "0,/^\(###\|## *\[[0-9]\).*/{s//## [${{ steps.bump.outputs.version }}] - ${current_date}\n\n&/}" CHANGELOG.md
 
-      - name: "Extract version's changelog for release notes and tag message"
+      - name: "Extract version's changelog for release notes"
         # 1. Find the lines between the first `## [<number>` and the second `## [<number>`.
         # 2. Remove all leading and trailing newlines from the output.
         run: sed '1,/^## *\[[0-9]/d;/^## *\[[0-9]/Q' CHANGELOG.md | sed -e :a -e '/./,$!d;/^\n*$/{$d;N;};/\n$/ba' > release_notes.txt
