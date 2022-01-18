@@ -56,9 +56,9 @@ class ApilyticsSender:
         Args:
             api_key: The API key for your Apilytics origin.
             path: Path of the user's HTTP request, e.g. "/foo/bar/123".
+            method: Method of the user's HTTP request, e.g. "GET".
             query: Optional query string of the user's HTTP request e.g. "key=val&other=123".
                 An empty string and None are treated equally. Can have an optional "?" at the start.
-            method: Method of the user's HTTP request, e.g. "GET".
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
