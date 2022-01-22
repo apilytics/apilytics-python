@@ -24,7 +24,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
 
       - name: "Set up Python"
-        id: setup-python
         uses: actions/setup-python@v2
         with:
           python-version: '3.7'
