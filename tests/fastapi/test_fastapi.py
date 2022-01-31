@@ -88,7 +88,7 @@ def test_middleware_should_send_data_even_on_errors(
 
     __, call_kwargs = mocked_urlopen.call_args
     data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data.keys() == {"method", "path", "timeMillis"}
     assert data["method"] == "GET"
     assert data["path"] == "/error"
-    assert data["statusCode"] is None  # Was not able to call `set_response_info`.
     assert isinstance(data["timeMillis"], int)

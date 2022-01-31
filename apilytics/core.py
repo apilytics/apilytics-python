@@ -97,14 +97,15 @@ class ApilyticsSender:
             )
         self._executor.submit(self._send_metrics)
 
-    def set_response_info(self, *, status_code: int) -> None:
+    def set_response_info(self, *, status_code: Optional[int] = None) -> None:
         """
         Update the context manager with info from the HTTP response object.
 
         Should be called before the context manager's block ends.
 
         Args:
-            status_code: Status code for the HTTP response.
+            status_code: Status code for the HTTP response. Can be omitted (or None)
+                if the middleware could not get the status code.
         """
         self._status_code = status_code
 
@@ -120,10 +121,14 @@ class ApilyticsSender:
         )
         data = {
             "path": self._path,
-            **({"query": self._query} if self._query else {}),
             "method": self._method,
-            "statusCode": self._status_code,
             "timeMillis": (self._end_time_ns - self._start_time_ns) // 1_000_000,
+            **({"query": self._query} if self._query else {}),  # Don't send empty str.
+            **(
+                {"statusCode": self._status_code}
+                if self._status_code is not None
+                else {}
+            ),
         }
         try:
             urllib.request.urlopen(url=request, data=json.dumps(data).encode())
