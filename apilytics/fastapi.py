@@ -60,8 +60,9 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             integrated_library=f"fastapi/{fastapi.__version__}",
         ) as sender:
             response = await call_next(request)
+            size = response.headers.get("content-length")
             sender.set_response_info(
                 status_code=response.status_code,
-                response_size=int(response.headers.get("content-length", 0)),
+                response_size=int(size) if size is not None else None,
             )
         return response

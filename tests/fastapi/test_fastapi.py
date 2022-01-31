@@ -70,7 +70,7 @@ def test_middleware_should_send_query_params(
     assert isinstance(data["timeMillis"], int)
 
 
-def test_middleware_should_send_zero_request_and_response_sizes(
+def test_middleware_should_handle_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     response = client.post("/empty")
@@ -80,10 +80,10 @@ def test_middleware_should_send_zero_request_and_response_sizes(
     __, call_kwargs = mocked_urlopen.call_args
     data = tests.conftest.decode_request_data(call_kwargs["data"])
     assert data["requestSize"] == 0
-    assert data["responseSize"] == 0
+    assert "responseSize" not in data  # In FastAPI 0 content-length is not set.
 
 
-def test_middleware_should_send_non_zero_request_and_response_sizes(
+def test_middleware_should_handle_non_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     response = client.post("/dummy?some=query", json={"hello": "world"})
@@ -99,8 +99,10 @@ def test_middleware_should_send_non_zero_request_and_response_sizes(
 def test_middleware_should_work_with_streaming_response(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
-    response = client.get("/streaming")
+    response = client.get("/streaming", stream=True)
     assert response.status_code == 200
+    content = b"".join(response.iter_content())
+    assert content == b"first second"
 
     assert mocked_urlopen.call_count == 1
     __, call_kwargs = mocked_urlopen.call_args
@@ -110,14 +112,12 @@ def test_middleware_should_work_with_streaming_response(
         "method",
         "statusCode",
         "requestSize",
-        "responseSize",
         "timeMillis",
     }
     assert data["path"] == "/streaming"
     assert data["method"] == "GET"
     assert data["statusCode"] == 200
     assert data["requestSize"] == 0
-    assert data["responseSize"] == 0  # Can't get body size from a streaming response.
     assert isinstance(data["timeMillis"], int)
 
 

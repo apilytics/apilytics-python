@@ -26,7 +26,9 @@ async def streaming_route(
     request: fastapi.Request,
 ) -> starlette.responses.StreamingResponse:
     return starlette.responses.StreamingResponse(
-        status_code=fastapi.status.HTTP_200_OK, content=(b"first", b"second")
+        status_code=fastapi.status.HTTP_200_OK,
+        content=iter([b"first", b" ", b"second"]),
+        media_type="application/octet-stream",
     )
 
 
