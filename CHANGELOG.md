@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Send request and response body size information with metrics.
+
 ### Changed
 
 - Change `status_code` into an optional parameter in `ApilyticsSender.set_response_info`.

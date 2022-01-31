@@ -37,7 +37,8 @@ import os
 APILYTICS_API_KEY = os.getenv("APILYTICS_API_KEY")
 
 MIDDLEWARE = [
-    "apilytics.django.ApilyticsMiddleware",
+    "apilytics.django.ApilyticsMiddleware",  # Ideally the first middleware in the list.
+    # ...
 ]
 ```
 
@@ -53,6 +54,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
+# Ideally the first middleware you add.
 app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 ```
 
@@ -78,9 +80,13 @@ def my_apilytics_middleware(request, get_response):
         path=request.path,
         query=request.query_string,
         method=request.method,
+        request_size=len(request.body),
     ) as sender:
         response = get_response(request)
-        sender.set_response_info(status_code=response.status_code)
+        sender.set_response_info(
+            status_code=response.status_code,
+            response_size=len(response.body),
+        )
     return response
 ```
 

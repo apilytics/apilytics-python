@@ -29,9 +29,13 @@ class ApilyticsSender:
                 path=request.path,
                 query=request.query_string,
                 method=request.method,
+                request_size=len(request.body),
             ) as sender:
                 response = get_response(request)
-                sender.set_response_info(status_code=response.status_code)
+                sender.set_response_info(
+                    status_code=response.status_code,
+                    response_size=len(response.body),
+                )
     """
 
     _executor: ClassVar[concurrent.futures.Executor]
@@ -47,6 +51,7 @@ class ApilyticsSender:
         path: str,
         method: str,
         query: Optional[str] = None,
+        request_size: Optional[int] = None,
         apilytics_integration: Optional[str] = None,
         integrated_library: Optional[str] = None,
     ) -> None:
@@ -59,6 +64,7 @@ class ApilyticsSender:
             method: Method of the user's HTTP request, e.g. "GET".
             query: Optional query string of the user's HTTP request e.g. "key=val&other=123".
                 An empty string and None are treated equally. Can have an optional "?" at the start.
+            request_size: Size of the user's HTTP request's body in bytes.
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
@@ -68,6 +74,9 @@ class ApilyticsSender:
         self._path = path
         self._method = method
         self._query = query
+        self._request_size = request_size
+
+        self._response_size: Optional[int] = None
         self._status_code: Optional[int] = None
 
         self._apilytics_version = self._apilytics_version_template.format(
@@ -97,7 +106,9 @@ class ApilyticsSender:
             )
         self._executor.submit(self._send_metrics)
 
-    def set_response_info(self, *, status_code: Optional[int] = None) -> None:
+    def set_response_info(
+        self, *, status_code: Optional[int] = None, response_size: Optional[int] = None
+    ) -> None:
         """
         Update the context manager with info from the HTTP response object.
 
@@ -106,8 +117,10 @@ class ApilyticsSender:
         Args:
             status_code: Status code for the HTTP response. Can be omitted (or None)
                 if the middleware could not get the status code.
+            response_size: Size of the body of the sent HTTP response in bytes.
         """
         self._status_code = status_code
+        self._response_size = response_size
 
     def _send_metrics(self) -> None:
         request = urllib.request.Request(
@@ -127,6 +140,16 @@ class ApilyticsSender:
             **(
                 {"statusCode": self._status_code}
                 if self._status_code is not None
+                else {}
+            ),
+            **(
+                {"requestSize": self._request_size}
+                if self._request_size is not None
+                else {}
+            ),
+            **(
+                {"responseSize": self._response_size}
+                if self._response_size is not None
                 else {}
             ),
         }
