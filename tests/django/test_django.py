@@ -36,10 +36,19 @@ def test_middleware_should_call_apilytics_api(
     }
 
     data = tests.conftest.decode_request_data(call_kwargs["data"])
-    assert data.keys() == {"path", "method", "statusCode", "timeMillis"}
+    assert data.keys() == {
+        "path",
+        "method",
+        "statusCode",
+        "requestSize",
+        "responseSize",
+        "timeMillis",
+    }
     assert data["path"] == "/"
     assert data["method"] == "GET"
     assert data["statusCode"] == 200
+    assert data["requestSize"] == 0
+    assert data["responseSize"] > 0
     assert isinstance(data["timeMillis"], int)
 
 
@@ -57,6 +66,64 @@ def test_middleware_should_send_query_params(
     assert data["path"] == "/dummy/123/path/"
     assert data["query"] == "param=foo&param2=bar"
     assert data["statusCode"] == 201
+    assert data["requestSize"] == 20  # Empty form data POST adds a 20 boundary string.
+    assert data["responseSize"] > 0
+    assert isinstance(data["timeMillis"], int)
+
+
+def test_middleware_should_send_zero_request_and_response_sizes(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    client.handler.load_middleware()
+    response = client.post("/empty?some=query", content_type="application/json")
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["requestSize"] == 2  # Django makes it `b"{}"` for empty JSON POSTs.
+    assert data["responseSize"] == 0
+
+
+def test_middleware_should_send_non_zero_request_and_response_sizes(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    client.handler.load_middleware()
+    response = client.post(
+        "/dummy?some=query", data={"hello": "world"}, content_type="application/json"
+    )
+    assert response.status_code == 201
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["requestSize"] == 18
+    assert data["responseSize"] == 7  # `len(b"created")`
+
+
+def test_middleware_should_work_with_streaming_response(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    client.handler.load_middleware()
+    response = client.get("/streaming")
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data.keys() == {
+        "path",
+        "method",
+        "statusCode",
+        "requestSize",
+        "responseSize",
+        "timeMillis",
+    }
+    assert data["path"] == "/streaming"
+    assert data["method"] == "GET"
+    assert data["statusCode"] == 200
+    assert data["requestSize"] == 0
+    assert data["responseSize"] == 0  # Can't get body size from a streaming response.
     assert isinstance(data["timeMillis"], int)
 
 
@@ -84,7 +151,17 @@ def test_middleware_should_send_data_even_on_errors(
 
     __, call_kwargs = mocked_urlopen.call_args
     data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data.keys() == {
+        "method",
+        "path",
+        "timeMillis",
+        "statusCode",
+        "requestSize",
+        "responseSize",
+    }
     assert data["method"] == "GET"
     assert data["path"] == "/error"
     assert data["statusCode"] == 500
+    assert data["requestSize"] == 0
+    assert data["responseSize"] > 0
     assert isinstance(data["timeMillis"], int)

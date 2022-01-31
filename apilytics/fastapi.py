@@ -12,6 +12,8 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
     FastAPI middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
+    This should ideally be the first middleware you add to your app.
+
     Examples:
         main.py::
 
@@ -53,9 +55,13 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             path=request.url.path,
             query=request.url.query,
             method=request.method,
+            request_size=len(await request.body()),
             apilytics_integration="apilytics-python-fastapi",
             integrated_library=f"fastapi/{fastapi.__version__}",
         ) as sender:
             response = await call_next(request)
-            sender.set_response_info(status_code=response.status_code)
+            sender.set_response_info(
+                status_code=response.status_code,
+                response_size=int(response.headers.get("content-length", 0)),
+            )
         return response

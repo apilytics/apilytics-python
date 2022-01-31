@@ -14,6 +14,8 @@ class ApilyticsMiddleware:
     """
     Django middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
+    This should ideally be the first middleware in your ``settings.MIDDLEWARE`` list.
+
     Requires your Apilytics origin's API key to be set as ``APILYTICS_API_KEY`` in
     ``settings.py`` for this to do anything. The variable can be unset (or ``None``)
     e.g. in a test environment where data should not be sent.
@@ -25,6 +27,7 @@ class ApilyticsMiddleware:
 
             MIDDLEWARE = [
                 "apilytics.django.ApilyticsMiddleware",
+                # ...
             ]
     """
 
@@ -44,9 +47,13 @@ class ApilyticsMiddleware:
             path=request.path,
             query=request.META.get("QUERY_STRING"),
             method=request.method or "",  # Typed as Optional, should never be None.
+            request_size=int(request.META.get("CONTENT_LENGTH", 0)),
             apilytics_integration="apilytics-python-django",
             integrated_library=f"django/{django.__version__}",
         ) as sender:
             response = self.get_response(request)
-            sender.set_response_info(status_code=response.status_code)
+            sender.set_response_info(
+                status_code=response.status_code,
+                response_size=len(getattr(response, "content", ())),
+            )
         return response
