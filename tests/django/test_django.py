@@ -71,7 +71,7 @@ def test_middleware_should_send_query_params(
     assert isinstance(data["timeMillis"], int)
 
 
-def test_middleware_should_send_zero_request_and_response_sizes(
+def test_middleware_should_handle_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     client.handler.load_middleware()
@@ -85,7 +85,7 @@ def test_middleware_should_send_zero_request_and_response_sizes(
     assert data["responseSize"] == 0
 
 
-def test_middleware_should_send_non_zero_request_and_response_sizes(
+def test_middleware_should_handle_non_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     client.handler.load_middleware()
@@ -107,6 +107,9 @@ def test_middleware_should_work_with_streaming_response(
     client.handler.load_middleware()
     response = client.get("/streaming")
     assert response.status_code == 200
+    # Ignore: The attribute *does* exist on StreamingHTTPResponse.
+    content = b"".join(response.streaming_content)  # type: ignore[attr-defined]
+    assert content == b"first second"
 
     assert mocked_urlopen.call_count == 1
     __, call_kwargs = mocked_urlopen.call_args
@@ -116,14 +119,12 @@ def test_middleware_should_work_with_streaming_response(
         "method",
         "statusCode",
         "requestSize",
-        "responseSize",
         "timeMillis",
     }
     assert data["path"] == "/streaming"
     assert data["method"] == "GET"
     assert data["statusCode"] == 200
     assert data["requestSize"] == 0
-    assert data["responseSize"] == 0  # Can't get body size from a streaming response.
     assert isinstance(data["timeMillis"], int)
 
 

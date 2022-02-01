@@ -52,8 +52,9 @@ class ApilyticsMiddleware:
             integrated_library=f"django/{django.__version__}",
         ) as sender:
             response = self.get_response(request)
+            content = getattr(response, "content", None)
             sender.set_response_info(
                 status_code=response.status_code,
-                response_size=len(getattr(response, "content", ())),
+                response_size=len(content) if content is not None else None,
             )
         return response

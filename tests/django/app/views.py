@@ -15,7 +15,7 @@ def streaming_view(
     request: django.http.HttpRequest,
 ) -> django.http.StreamingHttpResponse:
     return django.http.StreamingHttpResponse(
-        status=200, streaming_content=(b"first", b"second")
+        status=200, streaming_content=(b"first", b" ", b"second")
     )
 
 
