@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2022-02-01
+
 ### Fixed
 
 - Don't send 0 as the response size for streaming responses, send nothing instead.
