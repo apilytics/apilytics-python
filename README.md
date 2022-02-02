@@ -81,6 +81,7 @@ def my_apilytics_middleware(request, get_response):
         query=request.query_string,
         method=request.method,
         request_size=len(request.body),
+        user_agent=request.headers.get("user-agent"),
     ) as sender:
         response = get_response(request)
         sender.set_response_info(

@@ -6,15 +6,10 @@ import django.test
 import apilytics
 import tests.conftest
 
-client = django.test.client.Client()
-
 
 def test_middleware_should_call_apilytics_api(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    # Refresh middleware to call `__init__` again making sure `MiddlewareNotUsed`
-    # is ether called or not called properly.
-    client.handler.load_middleware()
     response = client.get("/")
     assert response.status_code == 200
 
@@ -53,9 +48,8 @@ def test_middleware_should_call_apilytics_api(
 
 
 def test_middleware_should_send_query_params(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
     response = client.post("/dummy/123/path/?param=foo&param2=bar")
     assert response.status_code == 201
 
@@ -71,10 +65,21 @@ def test_middleware_should_send_query_params(
     assert isinstance(data["timeMillis"], int)
 
 
-def test_middleware_should_handle_zero_request_and_response_sizes(
-    mocked_urlopen: unittest.mock.MagicMock,
+def test_middleware_should_send_user_agent(
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
+    response = client.get("/dummy", HTTP_USER_AGENT="some agent")
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["userAgent"] == "some agent"
+
+
+def test_middleware_should_handle_zero_request_and_response_sizes(
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
+) -> None:
     response = client.post("/empty?some=query", content_type="application/json")
     assert response.status_code == 200
 
@@ -86,9 +91,8 @@ def test_middleware_should_handle_zero_request_and_response_sizes(
 
 
 def test_middleware_should_handle_non_zero_request_and_response_sizes(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
     response = client.post(
         "/dummy?some=query", data={"hello": "world"}, content_type="application/json"
     )
@@ -102,9 +106,8 @@ def test_middleware_should_handle_non_zero_request_and_response_sizes(
 
 
 def test_middleware_should_work_with_streaming_response(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
     response = client.get("/streaming")
     assert response.status_code == 200
     # Ignore: The attribute *does* exist on StreamingHTTPResponse.
@@ -130,9 +133,8 @@ def test_middleware_should_work_with_streaming_response(
 
 @django.test.override_settings(APILYTICS_API_KEY=None)
 def test_middleware_should_be_disabled_if_api_key_is_unset(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
     response = client.get("/")
     assert response.status_code == 200
 
@@ -140,9 +142,8 @@ def test_middleware_should_be_disabled_if_api_key_is_unset(
 
 
 def test_middleware_should_send_data_even_on_errors(
-    mocked_urlopen: unittest.mock.MagicMock,
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:
-    client.handler.load_middleware()
     try:
         client.get("/error")
     except RuntimeError:

@@ -48,6 +48,7 @@ class ApilyticsMiddleware:
             query=request.META.get("QUERY_STRING"),
             method=request.method or "",  # Typed as Optional, should never be None.
             request_size=int(request.META.get("CONTENT_LENGTH", 0)),
+            user_agent=request.headers.get("user-agent"),
             apilytics_integration="apilytics-python-django",
             integrated_library=f"django/{django.__version__}",
         ) as sender:
