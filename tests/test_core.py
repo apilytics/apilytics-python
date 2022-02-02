@@ -89,6 +89,29 @@ def test_middleware_should_not_send_empty_query_params(
     assert "query" not in data
 
 
+def test_apilytics_sender_should_handle_empty_values_correctly(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    with apilytics.core.ApilyticsSender(
+        api_key="dummy-key",
+        path="",
+        method="",
+        query="",
+        request_size=None,
+        apilytics_integration=None,
+        integrated_library=None,
+    ) as sender:
+        sender.set_response_info(status_code=None, response_size=None)
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data.keys() == {"path", "method", "timeMillis"}
+    assert data["path"] == ""
+    assert data["method"] == ""
+    assert isinstance(data["timeMillis"], int)
+
+
 @unittest.mock.patch(
     "apilytics.core.urllib.request.urlopen",
     side_effect=urllib.error.URLError("testing"),
