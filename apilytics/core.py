@@ -117,7 +117,7 @@ class ApilyticsSender:
         Args:
             status_code: Status code for the HTTP response. Can be omitted (or None)
                 if the middleware could not get the status code.
-            response_size: Size of the body of the sent HTTP response in bytes.
+            response_size: Size of the sent HTTP response's body in bytes.
         """
         self._status_code = status_code
         self._response_size = response_size
