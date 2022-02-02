@@ -30,6 +30,7 @@ class ApilyticsSender:
                 query=request.query_string,
                 method=request.method,
                 request_size=len(request.body),
+                user_agent=request.headers.get("user-agent"),
             ) as sender:
                 response = get_response(request)
                 sender.set_response_info(
@@ -52,6 +53,7 @@ class ApilyticsSender:
         method: str,
         query: Optional[str] = None,
         request_size: Optional[int] = None,
+        user_agent: Optional[str] = None,
         apilytics_integration: Optional[str] = None,
         integrated_library: Optional[str] = None,
     ) -> None:
@@ -65,6 +67,7 @@ class ApilyticsSender:
             query: Optional query string of the user's HTTP request e.g. "key=val&other=123".
                 An empty string and None are treated equally. Can have an optional "?" at the start.
             request_size: Size of the user's HTTP request's body in bytes.
+            user_agent: Value of the `User-Agent` header from the user's HTTP request.
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
@@ -75,6 +78,7 @@ class ApilyticsSender:
         self._method = method
         self._query = query
         self._request_size = request_size
+        self._user_agent = user_agent
 
         self._response_size: Optional[int] = None
         self._status_code: Optional[int] = None
@@ -136,7 +140,9 @@ class ApilyticsSender:
             "path": self._path,
             "method": self._method,
             "timeMillis": (self._end_time_ns - self._start_time_ns) // 1_000_000,
-            **({"query": self._query} if self._query else {}),  # Don't send empty str.
+            # Don't send empty strings.
+            **({"query": self._query} if self._query else {}),
+            **({"userAgent": self._user_agent} if self._user_agent else {}),
             **(
                 {"statusCode": self._status_code}
                 if self._status_code is not None

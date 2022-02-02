@@ -98,6 +98,7 @@ def test_apilytics_sender_should_handle_empty_values_correctly(
         method="",
         query="",
         request_size=None,
+        user_agent=None,
         apilytics_integration=None,
         integrated_library=None,
     ) as sender:

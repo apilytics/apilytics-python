@@ -42,6 +42,7 @@ def test_middleware_should_call_apilytics_api(
         "statusCode",
         "requestSize",
         "responseSize",
+        "userAgent",
         "timeMillis",
     }
     assert data["path"] == "/"
@@ -49,6 +50,7 @@ def test_middleware_should_call_apilytics_api(
     assert data["statusCode"] == 200
     assert data["requestSize"] == 0
     assert data["responseSize"] > 0
+    assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
 
 
@@ -68,6 +70,18 @@ def test_middleware_should_send_query_params(
     assert data["requestSize"] == 0
     assert data["responseSize"] > 0
     assert isinstance(data["timeMillis"], int)
+
+
+def test_middleware_should_send_user_agent(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    response = client.get("/dummy", headers={"User-Agent": "some agent"})
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["userAgent"] == "some agent"
 
 
 def test_middleware_should_handle_zero_request_and_response_sizes(
@@ -112,12 +126,14 @@ def test_middleware_should_work_with_streaming_response(
         "method",
         "statusCode",
         "requestSize",
+        "userAgent",
         "timeMillis",
     }
     assert data["path"] == "/streaming"
     assert data["method"] == "GET"
     assert data["statusCode"] == 200
     assert data["requestSize"] == 0
+    assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
 
 
@@ -150,8 +166,9 @@ def test_middleware_should_send_data_even_on_errors(
 
     __, call_kwargs = mocked_urlopen.call_args
     data = tests.conftest.decode_request_data(call_kwargs["data"])
-    assert data.keys() == {"method", "path", "timeMillis", "requestSize"}
+    assert data.keys() == {"method", "path", "timeMillis", "userAgent", "requestSize"}
     assert data["method"] == "GET"
     assert data["path"] == "/error"
     assert data["requestSize"] == 0
+    assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)

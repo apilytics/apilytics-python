@@ -65,6 +65,18 @@ def test_middleware_should_send_query_params(
     assert isinstance(data["timeMillis"], int)
 
 
+def test_middleware_should_send_user_agent(
+    mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
+) -> None:
+    response = client.get("/dummy", HTTP_USER_AGENT="some agent")
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["userAgent"] == "some agent"
+
+
 def test_middleware_should_handle_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock, client: django.test.client.Client
 ) -> None:

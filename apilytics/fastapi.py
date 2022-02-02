@@ -56,6 +56,7 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
             query=request.url.query,
             method=request.method,
             request_size=len(await request.body()),
+            user_agent=request.headers.get("user-agent"),
             apilytics_integration="apilytics-python-fastapi",
             integrated_library=f"fastapi/{fastapi.__version__}",
         ) as sender:
