@@ -35,3 +35,9 @@ def mocked_executor() -> Generator[None, None, None]:
         new=_MockedExecutor,
     ):
         yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mocked_sleep() -> Generator[None, None, None]:
+    with unittest.mock.patch("apilytics.core.time.sleep", new=lambda secs: None):
+        yield
