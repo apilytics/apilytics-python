@@ -41,7 +41,7 @@ def test_apilytics_sender_should_call_apilytics_api(
     assert isinstance(data["timeMillis"], int)
 
 
-def test_middleware_should_send_query_params(
+def test_apilytics_sender_should_send_query_params(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     with apilytics.core.ApilyticsSender(
@@ -59,7 +59,7 @@ def test_middleware_should_send_query_params(
     assert data["query"] == "key=value?other=123"
 
 
-def test_middleware_should_not_send_empty_query_params(
+def test_apilytics_sender_should_not_send_empty_query_params(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:
     with apilytics.core.ApilyticsSender(
