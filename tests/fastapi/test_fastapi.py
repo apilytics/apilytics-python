@@ -44,6 +44,7 @@ def test_middleware_should_call_apilytics_api(
         "responseSize",
         "userAgent",
         "timeMillis",
+        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
     }
     assert data["path"] == "/"
     assert data["method"] == "GET"
@@ -52,6 +53,9 @@ def test_middleware_should_call_apilytics_api(
     assert data["responseSize"] > 0
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
+    if platform.system() == "Linux":
+        assert isinstance(data["memoryUsage"], int)
+        assert isinstance(data["memoryTotal"], int)
 
 
 def test_middleware_should_send_query_params(
@@ -128,6 +132,7 @@ def test_middleware_should_work_with_streaming_response(
         "requestSize",
         "userAgent",
         "timeMillis",
+        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
     }
     assert data["path"] == "/streaming"
     assert data["method"] == "GET"
@@ -135,6 +140,9 @@ def test_middleware_should_work_with_streaming_response(
     assert data["requestSize"] == 0
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
+    if platform.system() == "Linux":
+        assert isinstance(data["memoryUsage"], int)
+        assert isinstance(data["memoryTotal"], int)
 
 
 @tests.fastapi.conftest.override_middleware(
@@ -166,9 +174,19 @@ def test_middleware_should_send_data_even_on_errors(
 
     __, call_kwargs = mocked_urlopen.call_args
     data = tests.conftest.decode_request_data(call_kwargs["data"])
-    assert data.keys() == {"method", "path", "timeMillis", "userAgent", "requestSize"}
+    assert data.keys() == {
+        "method",
+        "path",
+        "timeMillis",
+        "userAgent",
+        "requestSize",
+        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
+    }
     assert data["method"] == "GET"
     assert data["path"] == "/error"
     assert data["requestSize"] == 0
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
+    if platform.system() == "Linux":
+        assert isinstance(data["memoryUsage"], int)
+        assert isinstance(data["memoryTotal"], int)
