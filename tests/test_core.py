@@ -1,4 +1,5 @@
 import platform
+import sys
 import textwrap
 import unittest.mock
 import urllib.error
@@ -31,7 +32,7 @@ def test_apilytics_sender_should_call_apilytics_api(
         # urllib calls `capitalize()` on the header keys.
         "Content-type": "application/json",
         "X-api-key": "dummy-key",
-        "Apilytics-version": f"apilytics-python-core/{apilytics.__version__};python/{platform.python_version()}",
+        "Apilytics-version": f"apilytics-python-core/{apilytics.__version__};python/{platform.python_version()};;{sys.platform}",
     }
 
     data = tests.conftest.decode_request_data(call_kwargs["data"])
