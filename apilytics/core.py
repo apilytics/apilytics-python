@@ -129,6 +129,7 @@ class ApilyticsSender:
 
     def _send_metrics(self) -> None:
         memory_usage, memory_total = _get_used_and_total_memory()
+        cpu_usage = _get_cpu_usage()
 
         request = urllib.request.Request(
             url="https://www.apilytics.io/api/v1/middleware",
@@ -161,6 +162,7 @@ class ApilyticsSender:
                 if self._response_size is not None
                 else {}
             ),
+            **({"cpuUsage": cpu_usage} if cpu_usage is not None else {}),
             **({"memoryUsage": memory_usage} if memory_usage is not None else {}),
             **({"memoryTotal": memory_total} if memory_total is not None else {}),
         }
@@ -168,6 +170,59 @@ class ApilyticsSender:
             urllib.request.urlopen(url=request, data=json.dumps(data).encode())
         except urllib.error.URLError:
             pass
+
+
+def _get_cpu_usage() -> Optional[float]:
+    """
+    Get the current CPU usage as a percentage.
+
+    Returns:
+        A percentage value between 0 and 1, or None if the CPU usage could not be
+        determined (most likely because the system is not Linux).
+    """
+    if platform.system() != "Linux":
+        return None
+
+    def cpu_times() -> Tuple[int, int]:
+        with open("/proc/stat") as f:
+            stat = f.readline()
+
+        # Ignore the `cpu` text from the start and the last two "guest" times.
+        times = [int(val) for val in stat.split()[1:9]]
+
+        total = sum(times)
+        idle = times[3]
+
+        try:
+            # Include `iowait` time into idle time if available, as does:
+            # https://github.com/torvalds/linux/blob/4f12b742eb2b3a850ac8be7dc4ed52976fc6cb0b/kernel/sched/cputime.c#L225
+            idle += times[4]
+        except IndexError:
+            # `iowait` time is not available before Linux 2.5.41, quite unlikely
+            # to happen but doesn't hurt to handle this anyway.
+            pass
+
+        return idle, total
+
+    try:
+        idle_start, total_start = cpu_times()
+
+        # There is no such thing as CPU usage percentage on a single point of time.
+        # At any discrete instant a CPU core is either fully used or fully idle.
+        # This is why we need to measure the usage over a known time interval. An
+        # interval of one second has been tested to provide quite consistent results.
+        time.sleep(1)
+
+        idle_end, total_end = cpu_times()
+    except OSError:
+        return None
+
+    try:
+        idle_percentage = (idle_end - idle_start) / (total_end - total_start)
+    except ZeroDivisionError:
+        return 0.0
+
+    return 1 - idle_percentage
 
 
 def _get_used_and_total_memory() -> Tuple[Optional[int], Optional[int]]:

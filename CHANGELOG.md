@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Send current system CPU usage together with metrics on Linux systems.
 - Send current system memory usage and total available memory together with metrics on Linux systems.
 - Add platform name to sent Apilytics version info.
 

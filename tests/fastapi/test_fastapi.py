@@ -45,7 +45,11 @@ def test_middleware_should_call_apilytics_api(
         "responseSize",
         "userAgent",
         "timeMillis",
-        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
+        *(
+            ("cpuUsage", "memoryUsage", "memoryTotal")
+            if platform.system() == "Linux"
+            else ()
+        ),
     }
     assert data["path"] == "/"
     assert data["method"] == "GET"
@@ -55,6 +59,7 @@ def test_middleware_should_call_apilytics_api(
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
     if platform.system() == "Linux":
+        assert isinstance(data["cpuUsage"], float)
         assert isinstance(data["memoryUsage"], int)
         assert isinstance(data["memoryTotal"], int)
 
@@ -133,7 +138,11 @@ def test_middleware_should_work_with_streaming_response(
         "requestSize",
         "userAgent",
         "timeMillis",
-        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
+        *(
+            ("cpuUsage", "memoryUsage", "memoryTotal")
+            if platform.system() == "Linux"
+            else ()
+        ),
     }
     assert data["path"] == "/streaming"
     assert data["method"] == "GET"
@@ -142,6 +151,7 @@ def test_middleware_should_work_with_streaming_response(
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
     if platform.system() == "Linux":
+        assert isinstance(data["cpuUsage"], float)
         assert isinstance(data["memoryUsage"], int)
         assert isinstance(data["memoryTotal"], int)
 
@@ -181,7 +191,11 @@ def test_middleware_should_send_data_even_on_errors(
         "timeMillis",
         "userAgent",
         "requestSize",
-        *(("memoryUsage", "memoryTotal") if platform.system() == "Linux" else ()),
+        *(
+            ("cpuUsage", "memoryUsage", "memoryTotal")
+            if platform.system() == "Linux"
+            else ()
+        ),
     }
     assert data["method"] == "GET"
     assert data["path"] == "/error"
@@ -189,5 +203,6 @@ def test_middleware_should_send_data_even_on_errors(
     assert data["userAgent"] == "testclient"
     assert isinstance(data["timeMillis"], int)
     if platform.system() == "Linux":
+        assert isinstance(data["cpuUsage"], float)
         assert isinstance(data["memoryUsage"], int)
         assert isinstance(data["memoryTotal"], int)
