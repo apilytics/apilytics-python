@@ -1,11 +1,12 @@
 import concurrent.futures
 import json
 import platform
+import re
 import time
 import types
 import urllib.error
 import urllib.request
-from typing import ClassVar, Optional, Type
+from typing import ClassVar, Optional, Tuple, Type
 
 import apilytics
 
@@ -127,6 +128,8 @@ class ApilyticsSender:
         self._response_size = response_size
 
     def _send_metrics(self) -> None:
+        memory_usage, memory_total = _get_used_and_total_memory()
+
         request = urllib.request.Request(
             url="https://www.apilytics.io/api/v1/middleware",
             method="POST",
@@ -158,8 +161,42 @@ class ApilyticsSender:
                 if self._response_size is not None
                 else {}
             ),
+            **({"memoryUsage": memory_usage} if memory_usage is not None else {}),
+            **({"memoryTotal": memory_total} if memory_total is not None else {}),
         }
         try:
             urllib.request.urlopen(url=request, data=json.dumps(data).encode())
         except urllib.error.URLError:
             pass
+
+
+def _get_used_and_total_memory() -> Tuple[Optional[int], Optional[int]]:
+    """
+    Get information about the used and total system memory.
+
+    Returns:
+        A tuple containing the used and total system memory in bytes.
+        (None, None) if the system is not Linux or if the reading fails.
+        (None, int) if the used memory could not be determined.
+    """
+    used = None
+    total = None
+
+    if platform.system() == "Linux":
+        try:
+            with open("/proc/meminfo") as f:
+                meminfo = f.read()
+        except OSError:
+            pass  # Prepare for everything and anything.
+        else:
+            total_match = re.search(r"MemTotal:\s*(\d+)", meminfo)
+            available_match = re.search(r"MemAvailable:\s*(\d+)", meminfo)
+            if total_match:
+                total = int(total_match.group(1)) * 1024
+                if available_match:
+                    # If MemAvailable exists MemTotal will also exist.
+                    # The reverse is not always true (MemAvailable came in Linux 3.14).
+                    available = int(available_match.group(1)) * 1024
+                    used = total - available
+
+    return used, total
