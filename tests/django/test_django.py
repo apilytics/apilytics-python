@@ -1,4 +1,5 @@
 import platform
+import sys
 import unittest.mock
 
 import django.test
@@ -27,7 +28,7 @@ def test_middleware_should_call_apilytics_api(
         # urllib calls `capitalize()` on the header keys.
         "Content-type": "application/json",
         "X-api-key": "dummy-key",
-        "Apilytics-version": f"apilytics-python-django/{apilytics.__version__};python/{platform.python_version()};django/{django.__version__}",
+        "Apilytics-version": f"apilytics-python-django/{apilytics.__version__};python/{platform.python_version()};django/{django.__version__};{sys.platform}",
     }
 
     data = tests.conftest.decode_request_data(call_kwargs["data"])

@@ -2,6 +2,7 @@ import concurrent.futures
 import json
 import platform
 import re
+import sys
 import time
 import types
 import urllib.error
@@ -44,7 +45,7 @@ class ApilyticsSender:
 
     _apilytics_version_template: ClassVar[
         str
-    ] = f"{{integration}}/{apilytics.__version__};python/{platform.python_version()}"
+    ] = f"{{integration}}/{apilytics.__version__};python/{platform.python_version()};{{library}};{sys.platform}"
 
     def __init__(
         self,
@@ -85,10 +86,9 @@ class ApilyticsSender:
         self._status_code: Optional[int] = None
 
         self._apilytics_version = self._apilytics_version_template.format(
-            integration=apilytics_integration or "apilytics-python-core"
+            integration=apilytics_integration or "apilytics-python-core",
+            library=integrated_library or "",
         )
-        if integrated_library:
-            self._apilytics_version += f";{integrated_library}"
 
     def __enter__(self) -> "ApilyticsSender":
         """Start the timer, measuring how long the ``with`` block takes to execute."""
