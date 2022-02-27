@@ -24,7 +24,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
-    "Operating System :: OS Independent",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
     "Topic :: Software Development :: Libraries :: Python Modules",
