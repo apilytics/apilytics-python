@@ -33,6 +33,7 @@ class ApilyticsSender:
                 method=request.method,
                 request_size=len(request.body),
                 user_agent=request.headers.get("user-agent"),
+                ip=request.headers.get("x-forwarded-for", "").split(",")[0].strip(),
             ) as sender:
                 response = get_response(request)
                 sender.set_response_info(
@@ -56,6 +57,7 @@ class ApilyticsSender:
         query: Optional[str] = None,
         request_size: Optional[int] = None,
         user_agent: Optional[str] = None,
+        ip: Optional[str] = None,
         apilytics_integration: Optional[str] = None,
         integrated_library: Optional[str] = None,
     ) -> None:
@@ -71,6 +73,8 @@ class ApilyticsSender:
             request_size: Size of the user's HTTP request's body in bytes.
             user_agent: Value of the `User-Agent` header from the user's HTTP request.
                 An empty string and None are treated equally.
+            ip: User's IP address (used for geolocation, never stored nor sent to 3rd parties).
+                An empty string and None are treated equally.
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
@@ -82,6 +86,7 @@ class ApilyticsSender:
         self._query = query
         self._request_size = request_size
         self._user_agent = user_agent
+        self._ip = ip
 
         self._response_size: Optional[int] = None
         self._status_code: Optional[int] = None
@@ -148,6 +153,7 @@ class ApilyticsSender:
             # Don't send empty strings.
             **({"query": self._query} if self._query else {}),
             **({"userAgent": self._user_agent} if self._user_agent else {}),
+            **({"ip": self._ip} if self._ip else {}),
             **(
                 {"statusCode": self._status_code}
                 if self._status_code is not None
