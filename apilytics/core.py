@@ -70,6 +70,7 @@ class ApilyticsSender:
                 An empty string and None are treated equally. Can have an optional "?" at the start.
             request_size: Size of the user's HTTP request's body in bytes.
             user_agent: Value of the `User-Agent` header from the user's HTTP request.
+                An empty string and None are treated equally.
             apilytics_integration: Name of the Apilytics integration that's calling this,
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
