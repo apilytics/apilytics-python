@@ -94,6 +94,26 @@ def test_middleware_should_send_user_agent(
     assert data["userAgent"] == "some agent"
 
 
+def test_middleware_should_send_ip(
+    mocked_urlopen: unittest.mock.MagicMock,
+) -> None:
+    response = client.get("/dummy", headers={"X-Forwarded-For": "127.0.0.1"})
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 1
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["ip"] == "127.0.0.1"
+
+    response = client.get("/dummy", headers={"X-Forwarded-For": "127.0.0.2,127.0.0.3"})
+    assert response.status_code == 200
+
+    assert mocked_urlopen.call_count == 2
+    __, call_kwargs = mocked_urlopen.call_args
+    data = tests.conftest.decode_request_data(call_kwargs["data"])
+    assert data["ip"] == "127.0.0.2"
+
+
 def test_middleware_should_handle_zero_request_and_response_sizes(
     mocked_urlopen: unittest.mock.MagicMock,
 ) -> None:

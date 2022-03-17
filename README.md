@@ -82,6 +82,7 @@ def my_apilytics_middleware(request, get_response):
         method=request.method,
         request_size=len(request.body),
         user_agent=request.headers.get("user-agent"),
+        ip=request.headers.get("x-forwarded-for", "").split(",")[0].strip(),
     ) as sender:
         response = get_response(request)
         sender.set_response_info(

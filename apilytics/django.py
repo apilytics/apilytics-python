@@ -49,6 +49,7 @@ class ApilyticsMiddleware:
             method=request.method or "",  # Typed as Optional, should never be None.
             request_size=int(request.META.get("CONTENT_LENGTH", 0)),
             user_agent=request.headers.get("user-agent"),
+            ip=request.headers.get("x-forwarded-for", "").split(",")[0].strip(),
             apilytics_integration="apilytics-python-django",
             integrated_library=f"django/{django.__version__}",
         ) as sender:
