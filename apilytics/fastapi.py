@@ -17,8 +17,8 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     Examples:
         main.py::
 
-            from fastapi import FastAPI
             from apilytics.fastapi import ApilyticsMiddleware
+            from fastapi import FastAPI
 
             app = FastAPI()
 
