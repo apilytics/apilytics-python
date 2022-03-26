@@ -58,6 +58,22 @@ app = FastAPI()
 app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 ```
 
+### Flask
+
+`app.py`:
+
+```python
+import os
+
+from apilytics.flask import apilytics_middleware
+from flask import Flask
+
+app = Flask(__name__)
+
+# Ideally wrap your app with the middleware before you do anything else with it.
+app = apilytics_middleware(app, api_key=os.getenv("APILYTICS_API_KEY"))
+```
+
 ### Other Python Frameworks
 
 You can easily build your own middleware which measures the execution time and sends the metrics:

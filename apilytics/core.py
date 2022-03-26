@@ -60,6 +60,7 @@ class ApilyticsSender:
         ip: Optional[str] = None,
         apilytics_integration: Optional[str] = None,
         integrated_library: Optional[str] = None,
+        prevent_send_on_exit: bool = False,
     ) -> None:
         """
         Initialize the context manager with info from the HTTP request object.
@@ -79,6 +80,8 @@ class ApilyticsSender:
                 e.g. "apilytics-python-django". No need to pass this when calling from user code.
             integrated_library: Name and version of the integration that this is used in,
                 e.g. "django/3.2.1". No need to pass this when calling from user code.
+            prevent_send_on_exit: Don't immediately send the metrics when the context
+                manager exits. Useful for advanced deferred sending scenarios.
         """
         self._api_key = api_key
         self._path = path
@@ -96,6 +99,8 @@ class ApilyticsSender:
             library=integrated_library or "",
         )
 
+        self._prevent_send_on_exit = prevent_send_on_exit
+
     def __enter__(self) -> "ApilyticsSender":
         """Start the timer, measuring how long the ``with`` block takes to execute."""
         self._start_time_ns = time.perf_counter_ns()
@@ -107,15 +112,9 @@ class ApilyticsSender:
         exc_val: Optional[BaseException],
         exc_tb: Optional[types.TracebackType],
     ) -> None:
-        """Send metrics to Apilytics in a fire-and-forget background task."""
-        self._end_time_ns = time.perf_counter_ns()
-        if not hasattr(self, "_executor"):
-            # Use only a single background thread and share the pool to minimize
-            # resource hogging.
-            self.__class__._executor = concurrent.futures.ThreadPoolExecutor(
-                max_workers=1
-            )
-        self._executor.submit(self._send_metrics)
+        if self._prevent_send_on_exit:
+            return
+        self.send()
 
     def set_response_info(
         self, *, status_code: Optional[int] = None, response_size: Optional[int] = None
@@ -132,6 +131,17 @@ class ApilyticsSender:
         """
         self._status_code = status_code
         self._response_size = response_size
+
+    def send(self) -> None:
+        """Send metrics to Apilytics in a fire-and-forget background task."""
+        self._end_time_ns = time.perf_counter_ns()
+        if not hasattr(self, "_executor"):
+            # Use only a single background thread and share the pool to minimize
+            # resource hogging.
+            self.__class__._executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=1
+            )
+        self._executor.submit(self._send_metrics)
 
     def _send_metrics(self) -> None:
         memory_usage, memory_total = _get_used_and_total_memory()
