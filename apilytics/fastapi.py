@@ -12,7 +12,7 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     """
     FastAPI middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
-    This should ideally be the first middleware you add to your app.
+    This should ideally be the last middleware you add to your app.
 
     Examples:
         main.py::

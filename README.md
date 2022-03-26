@@ -54,7 +54,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-# Ideally the first middleware you add.
+# Ideally the last middleware you add.
 app.add_middleware(ApilyticsMiddleware, api_key=os.getenv("APILYTICS_API_KEY"))
 ```
 
