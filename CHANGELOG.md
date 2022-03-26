@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `apilytics.flask.apilytics_middleware` for sending metrics from Flask applications.
+
+### Fixed
+
+- Fix FastAPI middleware suggested installation order; it should ideally be the *last* one added.
+
 ## [1.5.0] - 2022-03-17
 
 ### Added
