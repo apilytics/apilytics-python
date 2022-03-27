@@ -36,7 +36,8 @@ def apilytics_middleware(app: T, api_key: Optional[str]) -> T:
     if not api_key:
         return app
 
-    def before_request() -> None:
+    @app.before_request
+    def set_request_info() -> None:
         with apilytics.core.ApilyticsSender(
             api_key=cast(str, api_key),  # Type not inferred from the early return.
             path=flask.request.path,
@@ -51,7 +52,8 @@ def apilytics_middleware(app: T, api_key: Optional[str]) -> T:
         ) as sender:
             flask.g.apilytics_sender = sender
 
-    def after_request(response: flask.Response) -> flask.Response:
+    @app.after_request
+    def set_response_info(response: flask.Response) -> flask.Response:
         sender = flask.g.apilytics_sender
         size = response.headers.get("content-length")
         sender.set_response_info(
@@ -60,11 +62,9 @@ def apilytics_middleware(app: T, api_key: Optional[str]) -> T:
         )
         return response
 
-    def teardown_request(exc: Optional[BaseException]) -> None:
+    @app.teardown_request
+    def send_metrics(exc: Optional[BaseException]) -> None:
         sender = flask.g.apilytics_sender
         sender.send()
 
-    app.before_request(before_request)
-    app.after_request(after_request)
-    app.teardown_request(teardown_request)
     return app
