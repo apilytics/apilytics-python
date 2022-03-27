@@ -28,6 +28,7 @@ class ApilyticsMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     def __init__(self, app: fastapi.FastAPI, api_key: Optional[str]) -> None:
         """
         Args:
+            app: The FastAPI app to wrap.
             api_key: Your Apilytics origin's API key. You can pass ``None``
                 e.g. in a test environment where data should not be sent.
         """

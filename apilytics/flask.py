@@ -15,6 +15,14 @@ def apilytics_middleware(app: T, api_key: Optional[str]) -> T:
 
     This should ideally be the outermost middleware you wrap your app with.
 
+    Args:
+        app: The Flask app to wrap.
+        api_key: Your Apilytics origin's API key. You can pass ``None``
+            e.g. in a test environment where data should not be sent.
+
+    Returns:
+        The passed app with the middleware added onto it.
+
     Examples:
         app.py::
 
