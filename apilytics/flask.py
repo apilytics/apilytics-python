@@ -13,7 +13,7 @@ def apilytics_middleware(app: T, api_key: Optional[str]) -> T:
     """
     Flask middleware that sends API analytics data to Apilytics (https://apilytics.io).
 
-    This should ideally be the outermost middleware you wrap your app with.
+    Ideally wrap your app with this before you do anything else with it.
 
     Args:
         app: The Flask app to wrap.
