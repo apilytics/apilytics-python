@@ -184,7 +184,8 @@ class ApilyticsSender:
             **({"memoryTotal": memory_total} if memory_total is not None else {}),
         }
         try:
-            urllib.request.urlopen(url=request, data=json.dumps(data).encode())
+            with urllib.request.urlopen(url=request, data=json.dumps(data).encode()):
+                pass
         except urllib.error.URLError:
             pass
 
